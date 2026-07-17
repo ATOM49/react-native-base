@@ -1,0 +1,80 @@
+# One-time personalization for repositories generated from this template.
+#
+# When you click "Use this template", this workflow runs once in the new
+# repository: it renames the app after the new repo, points CODEOWNERS at the
+# new owner, resets the README, and then deletes itself.
+#
+# It never runs in the template repository itself.
+name: Template cleanup
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  cleanup:
+    name: Personalize generated repository
+    # Only run in repos generated from the template, on the very first commits.
+    if: github.event.repository.name != 'react-native-base' && github.run_number == 1
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Personalize project
+        run: |
+          set -euo pipefail
+
+          REPO_NAME="${{ github.event.repository.name }}"
+          OWNER="${{ github.repository_owner }}"
+
+          # kebab-case slug, e.g. "My App" -> "my-app"
+          SLUG=$(echo "$REPO_NAME" | tr '[:upper:] ' '[:lower:]-' | tr -cd 'a-z0-9-')
+          # scheme / identifier-safe name, e.g. "my-app" -> "myapp"
+          IDENT=$(echo "$SLUG" | tr -cd 'a-z0-9')
+          OWNER_IDENT=$(echo "$OWNER" | tr '[:upper:]' '[:lower:]' | tr -cd 'a-z0-9')
+
+          # Rename app identity in Expo + npm config.
+          sed -i "s/\"name\": \"react-native-base\"/\"name\": \"$SLUG\"/" app.json package.json
+          sed -i "s/\"slug\": \"react-native-base\"/\"slug\": \"$SLUG\"/" app.json
+          sed -i "s/\"scheme\": \"reactnativebase\"/\"scheme\": \"$IDENT\"/" app.json
+          sed -i "s/com\.example\.reactnativebase/com.$OWNER_IDENT.$IDENT/g" app.json
+
+          # Point code ownership at the new repository owner.
+          echo "* @$OWNER" > .github/CODEOWNERS
+
+          # Reset the README to a starter for the new project.
+          cat > README.md <<EOF
+          # $REPO_NAME
+
+          Bootstrapped from [react-native-base](https://github.com/${{ github.repository_owner }}/react-native-base): Expo + Expo Router + Zustand + TanStack Query + EAS.
+
+          ## Get started
+
+          \`\`\`sh
+          npm install
+          npx expo start
+          \`\`\`
+
+          ## Next steps
+
+          - [ ] Run \`npx eas init\` to link an EAS project (adds \`extra.eas.projectId\` to app.json)
+          - [ ] Run \`npx eas update:configure\` to enable OTA updates
+          - [ ] Add the \`EXPO_TOKEN\` secret in Settings → Secrets and variables → Actions
+          - [ ] Review \`app.json\` (bundle identifier, package name, icons, splash)
+          - [ ] Replace the example API module in \`src/api/\` with your own
+          EOF
+
+          # Remove template-only files (including this workflow).
+          rm -f .github/workflows/template-cleanup.yml
+
+      - name: Commit personalization
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Personalize template for ${{ github.event.repository.name }}"
+          git push

@@ -1,0 +1,22 @@
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    # Expo SDK packages are version-coupled; upgrade them together via
+    # `npx expo install expo@latest --fix` rather than one-by-one PRs.
+    ignore:
+      - dependency-name: 'expo*'
+      - dependency-name: 'react-native*'
+      - dependency-name: 'react'
+      - dependency-name: 'react-dom'
+      - dependency-name: '@expo/*'
+    groups:
+      minor-and-patch:
+        update-types: [minor, patch]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly

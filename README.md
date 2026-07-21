@@ -25,12 +25,38 @@ A production-ready React Native **template repository**: Expo + Expo Router + Zu
 
 ## Getting started
 
+### Prerequisites
+
+- Node 22 (see `.nvmrc`) — `nvm use`
+- [EAS CLI](https://docs.expo.dev/eas/) for builds/updates — `npm i -g eas-cli`
+- Xcode (iOS) and/or Android Studio (Android) if you want to run on
+  simulators/emulators. Not required for Expo Go or web.
+
+### Install & run
+
 ```sh
-nvm use          # Node 22 (see .nvmrc)
+nvm use
 npm install
 cp .env.example .env
 npx expo start   # press i / a / w for iOS / Android / web
 ```
+
+### Verify the setup
+
+```sh
+npm run typecheck
+npm run lint
+npm run format:check
+npm run test:ci
+```
+
+All four should pass cleanly on a fresh `npm install` — this is exactly what
+CI runs on every PR (see [CI](.github/workflows/ci.yml)). If `npm install`
+reports vulnerabilities, check `npm audit` before acting on it: most flagged
+issues live in Expo's own build tooling (transitive `uuid` deps in
+`@expo/config-plugins` etc.), not runtime app code, and `npm audit fix
+--force` will downgrade Expo to an incompatible major version — don't run it
+here.
 
 ## Project structure
 
@@ -74,10 +100,14 @@ Release model: JS-only changes ride OTA updates from `main`; native changes (new
 ### One-time EAS setup (after creating your repo)
 
 1. `npm i -g eas-cli && eas login`
-2. `eas init` — links the project (writes `extra.eas.projectId` into `app.json`)
-3. `eas update:configure` — enables OTA updates
-4. Create an [Expo access token](https://expo.dev/settings/access-tokens) and add it as the `EXPO_TOKEN` repository secret (**Settings → Secrets and variables → Actions**)
-5. For store submission: configure credentials with `eas credentials` and the `submit` profile in [`eas.json`](eas.json)
+2. `eas init` — links the project and writes `extra.eas.projectId` into `app.json`
+3. `eas update:configure` — enables OTA updates (adds the `updates.url` field to `app.json`)
+4. **Commit and push the `app.json` changes from steps 2–3** — the EAS Build
+   and EAS Update GitHub Actions workflows read `extra.eas.projectId` from the
+   committed `app.json`, so builds/updates triggered from CI will fail (or
+   target the wrong project) until this is pushed.
+5. Create an [Expo access token](https://expo.dev/settings/access-tokens) and add it as the `EXPO_TOKEN` repository secret (**Settings → Secrets and variables → Actions**)
+6. For store submission: configure credentials with `eas credentials` and the `submit` profile in [`eas.json`](eas.json)
 
 ### Environment variables
 

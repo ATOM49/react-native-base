@@ -43,3 +43,6 @@ coverage/
 # generated native folders
 /ios
 /android
+
+# editor/tooling-local config
+.serena/

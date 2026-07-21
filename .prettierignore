@@ -6,3 +6,4 @@ coverage/
 ios/
 android/
 package-lock.json
+.serena/

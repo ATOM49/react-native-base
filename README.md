@@ -12,16 +12,17 @@ A production-ready React Native **template repository**: Expo + Expo Router + Zu
 
 ## What's inside
 
-| Concern      | Choice                                                                                     |
-| ------------ | ------------------------------------------------------------------------------------------ |
-| Framework    | [Expo SDK 57](https://docs.expo.dev/) (React Native 0.86, React 19, TypeScript strict)     |
-| Routing      | [Expo Router](https://docs.expo.dev/router/introduction/) — file-based, typed routes       |
-| Client state | [Zustand](https://zustand.docs.pmnd.rs/) (+ AsyncStorage persistence example)              |
-| Server state | [TanStack Query](https://tanstack.com/query/latest) (app-focus refetch + offline handling) |
-| Builds & OTA | [EAS Build / Submit / Update](https://docs.expo.dev/eas/) via GitHub Actions               |
-| Testing      | Jest (`jest-expo`) + React Native Testing Library                                          |
-| Quality      | ESLint (`eslint-config-expo`), Prettier, `tsc --noEmit`, CI on every PR                    |
-| Repo hygiene | Issue forms, PR template, CODEOWNERS, Dependabot, SECURITY.md                              |
+| Concern      | Choice                                                                                                            |
+| ------------ | ----------------------------------------------------------------------------------------------------------------- |
+| Framework    | [Expo SDK 57](https://docs.expo.dev/) (React Native 0.86, React 19, TypeScript strict)                            |
+| Routing      | [Expo Router](https://docs.expo.dev/router/introduction/) — file-based, typed routes                              |
+| UI library   | [gluestack-ui v2](https://gluestack.io/ui/docs) on [NativeWind v4](https://www.nativewind.dev/) (Tailwind CSS v3) |
+| Client state | [Zustand](https://zustand.docs.pmnd.rs/) (+ AsyncStorage persistence example)                                     |
+| Server state | [TanStack Query](https://tanstack.com/query/latest) (app-focus refetch + offline handling)                        |
+| Builds & OTA | [EAS Build / Submit / Update](https://docs.expo.dev/eas/) via GitHub Actions                                      |
+| Testing      | Jest (`jest-expo`) + React Native Testing Library                                                                 |
+| Quality      | ESLint (`eslint-config-expo`), Prettier, `tsc --noEmit`, CI on every PR                                           |
+| Repo hygiene | Issue forms, PR template, CODEOWNERS, Dependabot, SECURITY.md                                                     |
 
 ## Getting started
 
@@ -68,13 +69,49 @@ src/
     +not-found.tsx    #   404 route
   api/                # Server state: fetch client + TanStack Query hooks
   stores/             # Client state: Zustand stores (plain + persisted examples)
-  components/         # Shared UI (themed primitives)
-  constants/          # Theme tokens (colors, spacing, fonts)
+  components/ui/      # gluestack-ui components (box, stack, text, button, provider)
+  constants/          # Color strings for React Navigation chrome (tab bar, etc.)
   hooks/              # Shared hooks (color scheme, theme)
   lib/                # App-wide singletons (query client)
+  global.css          # NativeWind/Tailwind entrypoint
 ```
 
 **Conventions:** import via the `@/` alias; screens live in `src/app/`; server data goes in TanStack Query hooks (`src/api/`), never in Zustand; `EXPO_PUBLIC_*` env vars are public — keep secrets out of them.
+
+## Styling & UI
+
+The UI layer is [gluestack-ui v2](https://gluestack.io/ui/docs) on
+[NativeWind v4](https://www.nativewind.dev/) — you style with Tailwind
+`className`s, not `StyleSheet`:
+
+```tsx
+import { VStack } from '@/components/ui/vstack';
+import { Button, ButtonText } from '@/components/ui/button';
+
+<VStack space="md" className="flex-1 bg-background p-4">
+  <Button action="primary" onPress={onPress}>
+    <ButtonText>Continue</ButtonText>
+  </Button>
+</VStack>;
+```
+
+Colors are semantic tokens (`bg-background`, `text-foreground`, `bg-primary`, …)
+defined per light/dark scheme in
+`src/components/ui/gluestack-ui-provider/config.ts` and mapped to Tailwind in
+`tailwind.config.js` — so they adapt to the color scheme automatically. This
+template ships a starter set of components (box, hstack, vstack, text, heading,
+button). Add more with the gluestack CLI (vendors source into
+`src/components/ui/`):
+
+```sh
+npx gluestack-ui@2 add input select modal   # interactive; needs a TTY + network
+```
+
+See [`AGENTS.md`](AGENTS.md) for the full UI conventions (tokens, adding
+components, the provider). **Static checks (`typecheck`/`lint`/`test`) don't
+exercise Metro bundling or on-device rendering** — after changing styling or the
+NativeWind/Tailwind config, run `npx expo start` once and load the app to
+confirm classes actually render on device.
 
 ## Scripts
 

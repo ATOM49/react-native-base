@@ -1,47 +1,29 @@
-import { StyleSheet, Switch, View } from 'react-native';
+import { Switch } from 'react-native';
 
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Spacing } from '@/constants/theme';
-import { useTheme } from '@/hooks/use-theme';
+import { HStack } from '@/components/ui/hstack';
+import { Text } from '@/components/ui/text';
+import { VStack } from '@/components/ui/vstack';
 import { useSettingsStore } from '@/stores/settings-store';
 
 export default function SettingsScreen() {
-  const theme = useTheme();
   const notificationsEnabled = useSettingsStore((state) => state.notificationsEnabled);
   const analyticsEnabled = useSettingsStore((state) => state.analyticsEnabled);
   const setNotificationsEnabled = useSettingsStore((state) => state.setNotificationsEnabled);
   const setAnalyticsEnabled = useSettingsStore((state) => state.setAnalyticsEnabled);
 
   return (
-    <ThemedView style={styles.container}>
-      <ThemedText themeColor="textSecondary">
+    <VStack space="md" className="flex-1 bg-background p-4">
+      <Text muted>
         These toggles are persisted with Zustand + AsyncStorage and survive app restarts.
-      </ThemedText>
-      <View style={[styles.item, { backgroundColor: theme.backgroundElement }]}>
-        <ThemedText>Notifications</ThemedText>
+      </Text>
+      <HStack className="items-center justify-between rounded-lg bg-secondary px-4 py-2">
+        <Text>Notifications</Text>
         <Switch value={notificationsEnabled} onValueChange={setNotificationsEnabled} />
-      </View>
-      <View style={[styles.item, { backgroundColor: theme.backgroundElement }]}>
-        <ThemedText>Analytics</ThemedText>
+      </HStack>
+      <HStack className="items-center justify-between rounded-lg bg-secondary px-4 py-2">
+        <Text>Analytics</Text>
         <Switch value={analyticsEnabled} onValueChange={setAnalyticsEnabled} />
-      </View>
-    </ThemedView>
+      </HStack>
+    </VStack>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: Spacing.md,
-    gap: Spacing.md,
-  },
-  item: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    borderRadius: 8,
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
-  },
-});

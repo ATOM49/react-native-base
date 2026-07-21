@@ -42,6 +42,16 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "31fe1215-0a87-4741-881f-242f08d493ff"
+      }
+    },
+    "owner": "mirjiallium",
+    "updates": {
+      "url": "https://u.expo.dev/31fe1215-0a87-4741-881f-242f08d493ff"
     }
   }
 }

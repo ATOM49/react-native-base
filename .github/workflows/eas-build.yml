@@ -1,0 +1,76 @@
+# Native builds via EAS Build.
+#
+# Triggers:
+#   - Manually from the Actions tab (choose platform + profile).
+#   - Automatically for production when a version tag (v*) is pushed.
+#
+# Requires the EXPO_TOKEN repository secret (https://expo.dev/settings/access-tokens)
+# and a linked EAS project (run `eas init` once locally).
+name: EAS Build
+
+on:
+  workflow_dispatch:
+    inputs:
+      platform:
+        description: Platform to build
+        type: choice
+        default: all
+        options: [all, android, ios]
+      profile:
+        description: EAS build profile
+        type: choice
+        default: preview
+        options: [development, preview, production]
+      submit:
+        description: Submit to the app stores after building (production only)
+        type: boolean
+        default: false
+  push:
+    tags: ['v*']
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: EAS Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check for EXPO_TOKEN
+        run: |
+          if [ -z "${{ secrets.EXPO_TOKEN }}" ]; then
+            echo "::error::EXPO_TOKEN secret is not set. Create a token at https://expo.dev/settings/access-tokens and add it in Settings > Secrets and variables > Actions."
+            exit 1
+          fi
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Setup Expo and EAS
+        uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build on EAS
+        run: |
+          PLATFORM="${{ github.event.inputs.platform || 'all' }}"
+          PROFILE="${{ github.event.inputs.profile || 'production' }}"
+          eas build --non-interactive --no-wait --platform "$PLATFORM" --profile "$PROFILE"
+
+      - name: Submit to app stores
+        if: github.event.inputs.submit == 'true' && github.event.inputs.profile == 'production'
+        run: eas submit --non-interactive --platform "${{ github.event.inputs.platform || 'all' }}" --profile production

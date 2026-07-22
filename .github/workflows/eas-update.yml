@@ -1,0 +1,58 @@
+# Over-the-air JS updates via EAS Update.
+#
+# Every push to main publishes an update to the branch/channel matching the
+# git branch, so installed builds pick up JS-only changes without a store
+# release. PRs get their own preview branch you can QA with a development build.
+#
+# Requires the EXPO_TOKEN repository secret (https://expo.dev/settings/access-tokens)
+# and a linked EAS project (run `eas init` once locally).
+name: EAS Update
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - '**.md'
+      - '.github/**'
+      - '!.github/workflows/eas-update.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  update:
+    name: Publish OTA update
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check for EXPO_TOKEN
+        run: |
+          if [ -z "${{ secrets.EXPO_TOKEN }}" ]; then
+            echo "::error::EXPO_TOKEN secret is not set. Create a token at https://expo.dev/settings/access-tokens and add it in Settings > Secrets and variables > Actions."
+            exit 1
+          fi
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Setup Expo and EAS
+        uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Publish update
+        run: eas update --auto --non-interactive

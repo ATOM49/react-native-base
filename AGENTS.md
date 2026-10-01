@@ -4,10 +4,14 @@ Guidance for AI coding agents (and new contributors) working in this repo.
 
 ## Stack
 
-- Expo SDK 57 / React Native 0.86 / React 19 / TypeScript (strict). Read the
-  versioned docs at https://docs.expo.dev/versions/v57.0.0/ before writing code.
+- Expo SDK 57 / React Native 0.86 / React 19.2 / TypeScript (strict) / Node 24 LTS.
+  Read the versioned docs at https://docs.expo.dev/versions/v57.0.0/ before writing code.
+- New Architecture only, React Compiler on, typed routes on, Continuous Native
+  Generation (`ios/` and `android/` are generated, never committed).
+- Develop in a **development build** (`expo-dev-client`, `eas build --profile development`);
+  Expo Go can't load custom native modules.
 - Routing: [Expo Router](https://docs.expo.dev/router/introduction/) — file-based routes in `src/app/`.
-- UI library: [gluestack-ui v2](https://gluestack.io/ui/docs) on
+- UI library: [gluestack-ui v3](https://gluestack.io/ui/docs) on
   [NativeWind v4](https://www.nativewind.dev/) (Tailwind CSS v3). Components in `src/components/ui/`.
 - Client state: [Zustand](https://zustand.docs.pmnd.rs/) stores in `src/stores/`.
 - Server state: [TanStack Query](https://tanstack.com/query/latest) hooks in `src/api/`.
@@ -56,12 +60,16 @@ import { Button, ButtonText } from '@/components/ui/button';
   components (input, modal, select, …) with the CLI, which vendors the source
   into `src/components/ui/`:
   ```sh
-  npx gluestack-ui@2 add input   # runs interactively; needs a TTY + network
+  npx gluestack-ui@3 add input   # runs interactively; needs a TTY + network
   ```
   If you can't run the CLI, hand-write the component in `src/components/ui/<name>/`
   following the existing files: a `tva(...)` style block for variants, and
-  `withStyleContext` / `useStyleContext` (from `@gluestack-ui/nativewind-utils`)
-  when child parts (e.g. `ButtonText`) need the parent's variant.
+  `withStyleContext` / `useStyleContext` (from `@gluestack-ui/utils/nativewind-utils`)
+  when child parts (e.g. `ButtonText`) need the parent's variant. Behavioural
+  primitives (overlay, toast, `createButton`, …) come from
+  `@gluestack-ui/core/<component>/creator`. The v2 per-component packages
+  (`@gluestack-ui/button`, `@gluestack-ui/overlay`, `@gluestack-ui/nativewind-utils`, …)
+  are deprecated — don't add them back.
 - **Provider:** `GluestackUIProvider` wraps the app in `src/app/_layout.tsx` and
   hosts the overlay/toast portals. `src/app/_layout.tsx` also imports
   `@/global.css` — keep that import; it's what loads Tailwind.
@@ -78,6 +86,8 @@ import { Button, ButtonText } from '@/components/ui/button';
 | `babel.config.js`                                   | NativeWind `jsxImportSource` + preset           |
 | `metro.config.js`                                   | `withNativeWind`, points at `src/global.css`    |
 | `tailwind.config.js`                                | Token→CSS-var color mapping + gluestack plugin  |
+| `eas.json`                                          | Build profiles + EAS Update channels            |
+| `.github/dependabot.yml`                            | Which deps may auto-update (coupled sets don't) |
 | `src/global.css`                                    | Tailwind directives (the NativeWind entrypoint) |
 | `src/components/ui/gluestack-ui-provider/config.ts` | Light/dark design tokens                        |
 
@@ -94,3 +104,83 @@ All four must pass — CI runs the same commands. Static checks do **not**
 exercise Metro bundling or on-device NativeWind rendering: after changing
 styling/config, also run `npx expo start` once and load the app to confirm
 classes actually render.
+
+## Keeping the template current
+
+This repo is a **base template**: every app generated from it starts with
+whatever versions and patterns are here. Keeping it current is part of every
+task, not a separate chore. When you work here, act like the template's
+maintainer: if you notice something stale, fix it (or flag it in your summary
+if it's out of scope).
+
+### Policy
+
+- **Expo SDK: newest stable, latest patch.** Check with `npm view expo dist-tags`
+  (`latest` = stable, `next` = beta). Always run the latest patch of the current
+  SDK — patches carry critical fixes (e.g. `expo@57.0.9` fixed a Hermes memory
+  regression for apps using Reanimated). Adopt a new SDK once it's stable, not
+  during its beta.
+- **Expo-coupled packages take exactly the versions the SDK specifies.** Use
+  `npx expo install <pkg>` / `npx expo install --check`, never hand-picked
+  versions. If the Expo API is unreachable (offline/sandboxed), read
+  `node_modules/expo/bundledNativeModules.json` for the same data. Keep Expo's
+  pin style (exact for `react-native`, `react-native-reanimated`,
+  `react-native-worklets`, `nativewind`; `~` for `expo-*`).
+- **Coupled sets move together, never one package at a time** — see the table
+  below. `.github/dependabot.yml` encodes these exclusions; update it when the
+  sets change.
+- **Everything else: latest minor/patch freely; majors when the coupled set
+  allows** (check peer deps with `npm view <pkg>@<ver> peerDependencies`).
+- **Node:** `.nvmrc` tracks the current Active LTS.
+- **GitHub Actions:** latest major of each action (`git ls-remote --tags <repo>`);
+  check the action's inputs didn't change across the major.
+- **Prefer platform defaults over custom setup.** When Expo/RN adds a
+  first-party way to do something the template does by hand, switch to it.
+  Don't add libraries that duplicate something already in the stack.
+- **Docs move with code.** Any version or pattern change updates this file, the
+  README stack table, and the versioned docs link above in the same commit.
+
+Coupled sets:
+
+| Set                                                                           | Driven by                                                   |
+| ----------------------------------------------------------------------------- | ----------------------------------------------------------- |
+| `react`, `react-native`, `expo-*`, Reanimated/Worklets/Screens/RNGH/SVG, etc. | Expo SDK (`bundledNativeModules.json`)                      |
+| `jest` major, `@react-native/jest-preset`                                     | `jest-expo`                                                 |
+| `eslint` major                                                                | `eslint-config-expo`                                        |
+| `@gluestack-ui/*` ↔ `nativewind` ↔ `tailwindcss` majors                       | NativeWind (gluestack v5 needs NativeWind v5 / Tailwind v4) |
+
+### Freshness check (start of any non-trivial task)
+
+```sh
+npm view expo dist-tags          # is there a newer stable SDK / patch?
+npx expo install --check         # Expo-coupled packages aligned?
+npm outdated                     # everything else
+```
+
+### SDK upgrade checklist
+
+1. Read `https://expo.dev/changelog/sdk-<N>` and the React Native release notes
+   for the bundled RN version. Note deprecations and new defaults.
+2. `npx expo install expo@^<N>.0.0 --fix`, then `npx expo-doctor@latest`.
+3. Re-align the non-Expo coupled sets above (jest-expo → jest, eslint-config-expo
+   → eslint, NativeWind/gluestack).
+4. Adopt new defaults/deprecations from step 1 in config and sample code.
+5. Update version numbers in this file (Stack, docs link, watchlist below)
+   and in the README.
+6. Verify: the four checks in **Verify changes**, `npx expo-doctor@latest`,
+   `npx expo export --platform android` (proves Metro bundles), and
+   `npx expo start` on a device/simulator. Native changes need a new dev build.
+
+### Upgrade watchlist
+
+Review these whenever you touch dependencies; update the table as items land.
+_Last reviewed: 2026-10-01._
+
+| Item                                       | Status                                                             | Action                                                                                                       |
+| ------------------------------------------ | ------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------ |
+| Expo SDK 58 (RN 0.88)                      | Beta since 2026-09-15 (`expo@next`)                                | Upgrade once stable. Brings iOS 27 scene life cycle by default, `@expo/agent-cli`.                           |
+| iOS 27 / Xcode 27                          | Apps built with the iOS 27 SDK must use the scene-based life cycle | On SDK 57 opt in via `expo-build-properties` `ios.enableSceneSupport` (`expo@>=57.0.23`), or move to SDK 58. |
+| NativeWind v5 / Tailwind v4 / gluestack v5 | NativeWind v5 is RC; gluestack v5 is stable but requires it        | Migrate all three together once NativeWind v5 is stable.                                                     |
+| Jest 30                                    | `jest-expo@57` still depends on Jest 29                            | Wait for `jest-expo` to move.                                                                                |
+| TypeScript 7 / ESLint 10                   | Released upstream                                                  | Adopt when Expo's tooling (`expo/tsconfig.base`, `eslint-config-expo`) supports them.                        |
+| AsyncStorage v3                            | SDK 57 bundles 2.2.0                                               | Follow the SDK.                                                                                              |

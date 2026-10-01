@@ -18,10 +18,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version-file: .nvmrc
           cache: npm
@@ -41,6 +41,9 @@ jobs:
       - name: Test
         run: npm run test:ci
 
-      - name: Verify Expo doctor
-        run: npx expo-doctor
+      # Checks dependency versions against the installed Expo SDK and flags
+      # known-incompatible config. Non-blocking so a new doctor rule never
+      # breaks unrelated PRs, but read its output when bumping dependencies.
+      - name: Expo doctor
+        run: npx expo-doctor@latest
         continue-on-error: true

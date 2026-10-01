@@ -16,7 +16,7 @@ A production-ready React Native **template repository**: Expo + Expo Router + Zu
 | ------------ | ----------------------------------------------------------------------------------------------------------------- |
 | Framework    | [Expo SDK 57](https://docs.expo.dev/) (React Native 0.86, React 19, TypeScript strict)                            |
 | Routing      | [Expo Router](https://docs.expo.dev/router/introduction/) — file-based, typed routes                              |
-| UI library   | [gluestack-ui v2](https://gluestack.io/ui/docs) on [NativeWind v4](https://www.nativewind.dev/) (Tailwind CSS v3) |
+| UI library   | [gluestack-ui v3](https://gluestack.io/ui/docs) on [NativeWind v4](https://www.nativewind.dev/) (Tailwind CSS v3) |
 | Client state | [Zustand](https://zustand.docs.pmnd.rs/) (+ AsyncStorage persistence example)                                     |
 | Server state | [TanStack Query](https://tanstack.com/query/latest) (app-focus refetch + offline handling)                        |
 | Builds & OTA | [EAS Build / Submit / Update](https://docs.expo.dev/eas/) via GitHub Actions                                      |
@@ -28,10 +28,13 @@ A production-ready React Native **template repository**: Expo + Expo Router + Zu
 
 ### Prerequisites
 
-- Node 22 (see `.nvmrc`) — `nvm use`
+- Node 24 LTS (see `.nvmrc`) — `nvm use`
 - [EAS CLI](https://docs.expo.dev/eas/) for builds/updates — `npm i -g eas-cli`
 - Xcode (iOS) and/or Android Studio (Android) if you want to run on
   simulators/emulators. Not required for Expo Go or web.
+- For real app work, use a [development build](https://docs.expo.dev/develop/development-builds/introduction/)
+  (`expo-dev-client` is preinstalled; `eas build --profile development`).
+  Expo Go is fine for a first look but can't load custom native modules.
 
 ### Install & run
 
@@ -80,7 +83,7 @@ src/
 
 ## Styling & UI
 
-The UI layer is [gluestack-ui v2](https://gluestack.io/ui/docs) on
+The UI layer is [gluestack-ui v3](https://gluestack.io/ui/docs) on
 [NativeWind v4](https://www.nativewind.dev/) — you style with Tailwind
 `className`s, not `StyleSheet`:
 
@@ -104,7 +107,7 @@ button). Add more with the gluestack CLI (vendors source into
 `src/components/ui/`):
 
 ```sh
-npx gluestack-ui@2 add input select modal   # interactive; needs a TTY + network
+npx gluestack-ui@3 add input select modal   # interactive; needs a TTY + network
 ```
 
 See [`AGENTS.md`](AGENTS.md) for the full UI conventions (tokens, adding
@@ -153,7 +156,8 @@ Copy `.env.example` → `.env` for local dev. `EXPO_PUBLIC_*` values are inlined
 ## Maintaining the template itself
 
 - Keep this repo marked as a **Template repository** (Settings → General → check "Template repository").
-- Dependabot updates actions and JS deps weekly; Expo-coupled packages are excluded — upgrade SDKs with `npx expo install expo@latest --fix` followed by `npx expo-doctor`.
+- Dependabot updates actions and JS deps weekly; Expo-coupled packages (and majors of the styling stack) are excluded — upgrade SDKs with `npx expo install expo@latest --fix` followed by `npx expo-doctor`.
+- The upkeep policy — what "current" means, when to adopt a new SDK, and the upgrade checklist — lives in [`AGENTS.md`](AGENTS.md#keeping-the-template-current). Agents and humans follow the same rules.
 - Recommended branch protection on `main`: require the CI check and one review.
 
 ## Contributing

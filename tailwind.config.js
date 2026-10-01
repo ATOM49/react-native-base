@@ -2,10 +2,18 @@
 // NativeWind + gluestack-ui. Color tokens resolve to CSS variables defined per
 // color scheme in `src/components/ui/gluestack-ui-provider/config.ts`, so the
 // same class (e.g. `bg-background`, `text-primary`) adapts to light/dark.
-// The plugin is published as an ESM default export; normalize across the
-// possible interop shapes so this works whether Tailwind loads the config via
-// jiti or Node require.
-const gluestackPluginModule = require('@gluestack-ui/nativewind-utils/tailwind-plugin');
+// gluestack's Tailwind plugin adds the `data-[state=value]:` variants (e.g.
+// `data-[pressed=true]:bg-primary/90`) that CLI-added components rely on.
+// @gluestack-ui/utils (v3) ships it as ESM and only exposes it through its
+// React Native barrel, so load the file directly; Tailwind's config loader
+// (jiti) transpiles it.
+const path = require('path');
+const gluestackPluginModule = require(
+  path.join(
+    path.dirname(require.resolve('@gluestack-ui/utils/nativewind-utils')),
+    'tailwind-plugin'
+  )
+);
 const gluestackPlugin = gluestackPluginModule.default ?? gluestackPluginModule;
 
 const withOpacity = (variable) => `rgb(var(${variable}) / <alpha-value>)`;

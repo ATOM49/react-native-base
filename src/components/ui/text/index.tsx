@@ -1,6 +1,5 @@
 import { Text as RNText, type TextProps as RNTextProps } from 'react-native';
-import { tva } from '@gluestack-ui/nativewind-utils/tva';
-import type { VariantProps } from '@gluestack-ui/nativewind-utils';
+import { tva, type VariantProps } from '@gluestack-ui/utils/nativewind-utils';
 
 const textStyle = tva({
   base: 'text-foreground',

@@ -1,5 +1,5 @@
 import { View, type ViewProps } from 'react-native';
-import { tva } from '@gluestack-ui/nativewind-utils/tva';
+import { tva } from '@gluestack-ui/utils/nativewind-utils';
 
 const boxStyle = tva({ base: '' });
 

@@ -5,10 +5,13 @@ import {
   type PressableProps,
   type TextProps as RNTextProps,
 } from 'react-native';
-import { cn } from '@gluestack-ui/nativewind-utils/cn';
-import { tva } from '@gluestack-ui/nativewind-utils/tva';
-import type { VariantProps } from '@gluestack-ui/nativewind-utils';
-import { useStyleContext, withStyleContext } from '@gluestack-ui/nativewind-utils/withStyleContext';
+import {
+  cn,
+  tva,
+  useStyleContext,
+  withStyleContext,
+  type VariantProps,
+} from '@gluestack-ui/utils/nativewind-utils';
 
 const SCOPE = 'BUTTON';
 

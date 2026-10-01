@@ -1,6 +1,5 @@
 import { View, type ViewProps } from 'react-native';
-import { tva } from '@gluestack-ui/nativewind-utils/tva';
-import type { VariantProps } from '@gluestack-ui/nativewind-utils';
+import { tva, type VariantProps } from '@gluestack-ui/utils/nativewind-utils';
 
 const hstackStyle = tva({
   base: 'flex-row',

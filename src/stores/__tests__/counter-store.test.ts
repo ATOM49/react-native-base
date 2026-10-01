@@ -1,10 +1,10 @@
-import { act } from '@testing-library/react-native';
-
 import { useCounterStore } from '@/stores/counter-store';
 
+// Stores can be tested without rendering: call actions via getState(). No
+// act() is needed because no React tree is subscribed.
 describe('counter store', () => {
   beforeEach(() => {
-    act(() => useCounterStore.getState().reset());
+    useCounterStore.getState().reset();
   });
 
   it('starts at zero', () => {
@@ -12,11 +12,11 @@ describe('counter store', () => {
   });
 
   it('increments and decrements', () => {
-    act(() => useCounterStore.getState().increment());
-    act(() => useCounterStore.getState().increment());
+    useCounterStore.getState().increment();
+    useCounterStore.getState().increment();
     expect(useCounterStore.getState().count).toBe(2);
 
-    act(() => useCounterStore.getState().decrement());
+    useCounterStore.getState().decrement();
     expect(useCounterStore.getState().count).toBe(1);
   });
 });

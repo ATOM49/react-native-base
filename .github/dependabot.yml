@@ -12,6 +12,17 @@ updates:
       - dependency-name: 'react'
       - dependency-name: 'react-dom'
       - dependency-name: '@expo/*'
+      # SDK-managed native modules outside the react-native* name pattern.
+      - dependency-name: '@react-native-async-storage/*'
+      - dependency-name: '@react-native-community/*'
+      - dependency-name: '@shopify/flash-list'
+      # Versions Expo's tooling pins (expo/tsconfig.base, eslint-config-expo).
+      - dependency-name: 'typescript'
+        update-types: ['version-update:semver-major']
+      - dependency-name: '@types/react'
+        update-types: ['version-update:semver-major']
+      - dependency-name: 'eslint'
+        update-types: ['version-update:semver-major']
       # The styling stack is version-coupled too: gluestack-ui v5 requires
       # NativeWind v5 / Tailwind v4. Migrate majors deliberately (see AGENTS.md).
       - dependency-name: 'nativewind'

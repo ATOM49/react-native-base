@@ -23,6 +23,7 @@ A production-ready React Native **template repository**: Expo + Expo Router + Zu
 | Testing      | Jest (`jest-expo`) + React Native Testing Library                                                                 |
 | Quality      | ESLint (`eslint-config-expo`), Prettier, `tsc --noEmit`, CI on every PR                                           |
 | Repo hygiene | Issue forms, PR template, CODEOWNERS, Dependabot, SECURITY.md                                                     |
+| AI agents    | Version-pinned [`AGENTS.md`](AGENTS.md) (read via `CLAUDE.md`), fast UI-free tests, accessible labels             |
 
 ## Getting started
 
@@ -48,10 +49,7 @@ npx expo start   # press i / a / w for iOS / Android / web
 ### Verify the setup
 
 ```sh
-npm run typecheck
-npm run lint
-npm run format:check
-npm run test:ci
+npm run verify   # = lint + format:check + typecheck + test:ci
 ```
 
 All four should pass cleanly on a fresh `npm install` — this is exactly what
@@ -125,6 +123,7 @@ confirm classes actually render on device.
 | `npm run lint`                          | ESLint via `expo lint`                                         |
 | `npm run format` / `format:check`       | Prettier write / verify                                        |
 | `npm test` / `test:ci`                  | Jest watch mode / CI mode with coverage                        |
+| `npm run verify`                        | All CI checks in one command (what agents should run)          |
 | `npm run prebuild`                      | Generate native projects (usually unnecessary — EAS does this) |
 
 ## Deployments

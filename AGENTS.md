@@ -25,6 +25,15 @@ Guidance for AI coding agents (and new contributors) working in this repo.
   TanStack Query hook; UI/session state belongs in a store.
 - `EXPO_PUBLIC_*` env vars are inlined into the client bundle; never put secrets in them.
 - kebab-case filenames; components exported as named PascalCase functions.
+- **Keep screens thin.** Business rules, data shaping and request logic go in
+  plain TypeScript modules (`src/api/`, `src/stores/`, or a UI-free module under
+  `src/lib/`) that Jest can test in milliseconds without a simulator. A screen
+  should mostly wire hooks to components. See `src/api/__tests__/client.test.ts`
+  and `src/stores/__tests__/counter-store.test.ts` for the pattern.
+- **Every interactive element has an accessible name.** Give controls without
+  visible text inside them (`Switch`, icon buttons, …) an `accessibilityLabel`.
+  Screen readers, React Native Testing Library's `getByRole`/`getByLabelText`,
+  and accessibility-tree device tools all rely on it.
 
 ## UI: gluestack-ui + NativeWind
 
@@ -94,6 +103,7 @@ import { Button, ButtonText } from '@/components/ui/button';
 ## Verify changes
 
 ```sh
+npm run verify      # runs all four below, stops at the first failure
 npm run typecheck   # tsc --noEmit
 npm run lint        # expo lint (ESLint)
 npm run format:check
@@ -104,6 +114,41 @@ All four must pass — CI runs the same commands. Static checks do **not**
 exercise Metro bundling or on-device NativeWind rendering: after changing
 styling/config, also run `npx expo start` once and load the app to confirm
 classes actually render.
+
+## Working with coding agents
+
+This file is the agent's version-pinned context: it names the SDK, the docs for
+that exact version, and the patterns to follow. Models trained on older React
+Native code tend to produce outdated patterns (class lifecycles, the old Bridge,
+hand-written native module boilerplate, React Navigation config instead of
+Expo Router). This template is New Architecture only, so treat any of those as
+a bug. Keep this file accurate; a stale AGENTS.md is worse than none.
+
+How changes should be made:
+
+1. **Follow the existing vertical slice.** Before adding a feature, read the
+   slice it resembles (route in `src/app/` → hook in `src/api/` or store in
+   `src/stores/` → gluestack UI → colocated `__tests__/`) and copy its shape.
+   New files tend to copy their neighbours, so an inconsistent pattern spreads
+   fast. If a pattern needs to change, change it once, deliberately, and
+   update this file in the same PR.
+2. **Small, checkable steps over one large change.** Split big features or
+   migrations into screen-by-screen or module-by-module PRs that each pass
+   `npm run verify`.
+3. **Fast checks first, device checks second.** Prove logic with Jest (no
+   simulator). Use a device or simulator only for what needs one: layout,
+   NativeWind rendering, gestures and native modules.
+4. **Device feedback for agents.** For on-device checks an agent can drive:
+   - the Expo MCP server (setup: [docs.expo.dev/agents](https://docs.expo.dev/agents);
+     needs an Expo account) for the project's SDK and config, docs
+     lookup, and simulator screenshots from the running dev server;
+   - [agent-device](https://oss.callstack.com/agent-device/) (Callstack) to
+     drive the app via accessibility snapshots, and to save an exploratory run
+     as a replayable check that runs without AI. Good accessibility labels
+     (see **Conventions**) make both work better.
+5. **Independent review.** Agent-written PRs get a human review (CODEOWNERS)
+   and, where available, a separate review pass. Don't merge on the authoring
+   agent's own say-so.
 
 ## Keeping the template current
 
@@ -174,7 +219,7 @@ npm outdated                     # everything else
 ### Upgrade watchlist
 
 Review these whenever you touch dependencies; update the table as items land.
-_Last reviewed: 2026-10-01._
+_Last reviewed: 2026-10-06._
 
 | Item                                       | Status                                                             | Action                                                                                                       |
 | ------------------------------------------ | ------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------ |

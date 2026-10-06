@@ -18,11 +18,19 @@ export default function SettingsScreen() {
       </Text>
       <HStack className="items-center justify-between rounded-lg bg-secondary px-4 py-2">
         <Text>Notifications</Text>
-        <Switch value={notificationsEnabled} onValueChange={setNotificationsEnabled} />
+        <Switch
+          accessibilityLabel="Notifications"
+          value={notificationsEnabled}
+          onValueChange={setNotificationsEnabled}
+        />
       </HStack>
       <HStack className="items-center justify-between rounded-lg bg-secondary px-4 py-2">
         <Text>Analytics</Text>
-        <Switch value={analyticsEnabled} onValueChange={setAnalyticsEnabled} />
+        <Switch
+          accessibilityLabel="Analytics"
+          value={analyticsEnabled}
+          onValueChange={setAnalyticsEnabled}
+        />
       </HStack>
     </VStack>
   );
